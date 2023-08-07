@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ public class UserDao{
 
     JdbcTemplate jdbcTemplate;
     private SimpleJdbcCall getUserByEmailAddress;
+    private SimpleJdbcCall createOneTimePassword;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -31,6 +33,12 @@ public class UserDao{
                 .withProcedureName("GetUserByEmailAddress")
                 .returningResultSet("#result-set-1",
                         RowMapper.newInstance(User.class));
+
+        createOneTimePassword = new SimpleJdbcCall(jdbcTemplate)
+//                .withFunctionName("GetUserByEmailAddress")
+                .withProcedureName("CreateOneTimePassword")
+                .returningResultSet("#result-set-1",
+                        RowMapper.newInstance(String.class));
     }
 
 
@@ -43,5 +51,14 @@ public class UserDao{
         List<User> result = (List<User>) m.get("#result-set-1");
 
         return result;
+    }
+
+    public void createOneTimePassword(String username, String otp, LocalDateTime expiryDate, String otpKey) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("username", username)
+                .addValue("otp", otp)
+                .addValue("otpKey", otpKey)
+                .addValue("expiryDate", expiryDate);
+        createOneTimePassword.execute(in);
     }
 }

@@ -13,6 +13,7 @@ import java.util.Date;
 @Table(name = "users")
 public class User implements Serializable {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     private String country;

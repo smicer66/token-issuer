@@ -11,6 +11,7 @@
     <groupId>com.gopinath</groupId>
     <artifactId>token-issuer</artifactId>
     <version>1.0.0</version>
+    <packaging>war</packaging>
     <name>token-issuer</name>
     <description>Service to issue JSON Web Tokens</description>
     <dependencies>
@@ -51,6 +52,17 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4</version>
         </dependency>
     </dependencies>
     <build>

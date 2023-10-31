@@ -52,6 +52,12 @@ public class TokenService {
     @Value("${service.provider.x509}")
     private String clientCertificate;
 
+    @Value("${token.issuer.pkcs12}")
+    private String clientPKCS;
+
+    @Value("${service.provider.x509}")
+    private String serverCertificate;
+
 
     private RSAKey getPublicKey(String certificateFile) {
         RSAKey publicKey = null;
@@ -232,57 +238,56 @@ public class TokenService {
         return token;
     }
 
+    public User getUserFromToken(HttpServletRequest request) throws JsonProcessingException {
+        Enumeration<String> headers = request.getHeaderNames();
+        String token = "unknown";
+        User user = null;
+        while(headers.hasMoreElements()) {
+            String key = headers.nextElement();
+            if(key.trim().equalsIgnoreCase("Authorization")) {
+                String authorizationHeader = request.getHeader(key);
+                if(!authorizationHeader.isEmpty()) {
+                    String[] tokenData = authorizationHeader.split(" ");
+                    if(tokenData.length == 2 && tokenData[0].trim().equalsIgnoreCase("Bearer")) {
+                        token = tokenData[1];
+                        LOG.info("Received token: " + token);
+                        break;
+                    }
+                }
+            }
+        }
 
-//
-//    public User getUserFromToken(HttpServletRequest request) throws JsonProcessingException {
-//        Enumeration<String> headers = request.getHeaderNames();
-//        String token = null;
-//        User user = null;
-//        while(headers.hasMoreElements()) {
-//            String key = headers.nextElement();
-//            if(key.trim().equalsIgnoreCase("Authorization")) {
-//                String authorizationHeader = request.getHeader(key);
-//                if(!authorizationHeader.isEmpty()) {
-//                    String[] tokenData = authorizationHeader.split(" ");
-//                    if(tokenData.length == 2 && tokenData[0].trim().equalsIgnoreCase("Bearer")) {
-//                        token = tokenData[1];
-//                        LOG.info("Received token: " + token);
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//
-//        try {
-//            JWT jwt = JWTParser.parse(token);
-//            if(jwt instanceof EncryptedJWT) {
-//                EncryptedJWT jwe = (EncryptedJWT) jwt;
-//                RSAKey clientJWK = getJSONWebKey(serverPKCS);
-//                JWEDecrypter decrypter = new RSADecrypter(clientJWK);
-//                jwe.decrypt(decrypter);
-//                SignedJWT jws = jwe.getPayload().toSignedJWT();
-//
-//                RSAKey serverJWK = getPublicKey(clientCertificate);
-//                RSASSAVerifier signVerifier = new RSASSAVerifier(serverJWK);
-//                if(jws.verify(signVerifier)) {
-//                    JWTClaimsSet claims = jws.getJWTClaimsSet();
-//                    Date expiryTime = claims.getExpirationTime();
-//                    LOG.info("Expiry time = " + expiryTime.toString());
-//                    if(expiryTime.after(new Date())) {
-//                        Object userString = claims.getClaim("user");
-//                        String uString = String.valueOf(userString);
-//                        LOG.info("uString = " + uString);
-//                        ObjectMapper mapper = new ObjectMapper();
-//                        user = mapper.readValue(uString, User.class);
-//                        LOG.info("Token validated for user = " + uString);
-//                        LOG.info("Token validated for user = {}" + user);
-//                        return user;
-//                    }
-//                }
-//            }
-//        } catch(ParseException | JOSEException ex) {
-//            LOG.error(ex.toString());
-//        }
-//        return null;
-//    }
+        try {
+            JWT jwt = JWTParser.parse(token);
+            if(jwt instanceof EncryptedJWT) {
+                EncryptedJWT jwe = (EncryptedJWT) jwt;
+                RSAKey clientJWK = getJSONWebKey(clientPKCS);
+                JWEDecrypter decrypter = new RSADecrypter(clientJWK);
+                jwe.decrypt(decrypter);
+                SignedJWT jws = jwe.getPayload().toSignedJWT();
+
+                RSAKey serverJWK = getPublicKey(serverCertificate);
+                RSASSAVerifier signVerifier = new RSASSAVerifier(serverJWK);
+                if(jws.verify(signVerifier)) {
+                    JWTClaimsSet claims = jws.getJWTClaimsSet();
+                    Date expiryTime = claims.getExpirationTime();
+                    LOG.info("Expiry time = " + expiryTime.toString());
+                    if(expiryTime.after(new Date())) {
+                        Object userString = claims.getClaim("user");
+                        String uString = String.valueOf(userString);
+                        LOG.info("uString = " + uString);
+                        ObjectMapper mapper = new ObjectMapper();
+                        user = mapper.readValue(uString, User.class);
+                        LOG.info("Token validated for user = " + uString);
+                        LOG.info("Token validated for user = {}" + user);
+                        return user;
+                    }
+                }
+            }
+        }
+        catch(ParseException | JOSEException ex) {
+            LOG.error(ex.toString());
+        }
+        return null;
+    }
 }

@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -15,26 +16,25 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    private String country;
     private String firstName;
     private String lastName;
-    @Column(nullable= false, unique=true)
     private String emailAddress;
-    @Column(nullable= false)
+    private String mobileNumber;
     private String password;
+    private String forgotPasswordLink;
 
-    @Column(nullable= false)
-    private boolean isSoftwareDeveloper;
-    @Column(nullable= true)
-    private String verificationLink;
-
-    @Column(nullable= false)
     private String userStatus;
 
     private String gender;
     private Date dateOfBirth;
+    private String otp;
+    private LocalDateTime otpExpiryDate;
+    private String verificationLink;
+    private String primaryBusinessName;
+    private String country;
+    private Boolean softwareDeveloper;
     private String identificationDocument;
     private String identificationNumber;
     private String identificationDocumentPath;
+    private Long primaryMerchantId;
 }

@@ -1,6 +1,7 @@
 package com.gopinath.token.issuer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gopinath.token.issuer.enums.Permission;
 import com.gopinath.token.issuer.model.RequestData;
 import com.gopinath.token.issuer.model.User;
@@ -10,6 +11,7 @@ import com.gopinath.token.issuer.responses.TokenResponse;
 import com.gopinath.token.issuer.service.TokenService;
 import com.gopinath.token.issuer.service.UserOtpService;
 import com.gopinath.token.issuer.service.UserService;
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,13 +66,20 @@ public class TokenController {
         String subject = requestData.getUsername();
         Permission permission = Permission.ALL_PERMISSIONS;
         String jwe = tokenService.getToken(requestData, userService, Arrays.asList(permission), tokenPeriodInMins, null);
-        String json = ("{\"subject\":\"" + subject 
-                + "\",\"token\":\"" + jwe + "\"}");
+        List<Long> merchantIdList = userService.getMerchantIdsByUsername(requestData.getUsername());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String merchantIds = objectMapper.writeValueAsString(merchantIdList);
+//        String json = ("{\"subject\":\"" + subject
+//                + "\",\"token\":\"" + jwe + "\",\"merchantList\":}");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("subject", subject);
+        jsonObject.put("token", jwe);
+        jsonObject.put("merchantList", merchantIdList);
         LOG.info("Token generated for " + subject);
         final HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + jwe);
         LOG.info("Authorization Header set with token");
-        return (new ResponseEntity<>(json, headers, HttpStatus.OK));
+        return (new ResponseEntity<>(jsonObject, headers, HttpStatus.OK));
     }
 
 

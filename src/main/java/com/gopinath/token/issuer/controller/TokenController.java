@@ -11,6 +11,10 @@ import com.gopinath.token.issuer.responses.TokenResponse;
 import com.gopinath.token.issuer.service.TokenService;
 import com.gopinath.token.issuer.service.UserOtpService;
 import com.gopinath.token.issuer.service.UserService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +58,17 @@ public class TokenController {
 
     private final Logger LOG = LoggerFactory.getLogger(TokenController.class);
 
-    @RequestMapping(value="/api/jwe", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+
+    @CrossOrigin
+    @RequestMapping(value="/api/authenticate", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
+    @ApiOperation(value = "Authenticate", response = ResponseEntity.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successful"),
+            @ApiResponse(code = 400, message = "Validation of request parameters failed"),
+            @ApiResponse(code = 403, message = "Access to API denied due to invalid token"),
+            @ApiResponse(code = 500, message = "Application failed to process the request")
+    })
     public ResponseEntity<?> getToken(@Valid @RequestBody final RequestData requestData, final Errors errors) throws JsonProcessingException {
 
         LOG.error("1212 = ");
@@ -72,19 +86,49 @@ public class TokenController {
 //        String json = ("{\"subject\":\"" + subject
 //                + "\",\"token\":\"" + jwe + "\",\"merchantList\":}");
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("subject", subject);
-        jsonObject.put("token", jwe);
-        jsonObject.put("merchantList", merchantIdList);
-        LOG.info("Token generated for " + subject);
-        final HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + jwe);
-        LOG.info("Authorization Header set with token");
-        return (new ResponseEntity<>(jsonObject, headers, HttpStatus.OK));
+
+        if(jwe!=null)
+        {
+            jsonObject.put("status", 0);
+            jsonObject.put("subject", subject);
+            jsonObject.put("token", jwe);
+            jsonObject.put("merchantList", merchantIdList);
+
+
+            LOG.info("Token generated for " + subject);
+            final HttpHeaders headers = new HttpHeaders();
+//        headers.add("Authorization", "Bearer " + jwe);
+            LOG.info("Authorization Header set with token");
+            return (new ResponseEntity<>(jsonObject, headers, HttpStatus.OK));
+        }
+        else {
+            jsonObject.put("status", 1);
+            jsonObject.put("message", "Login was not successful. Invalid username/password combination");
+            jsonObject.put("subject", subject);
+            jsonObject.put("token", jwe);
+            jsonObject.put("merchantList", merchantIdList);
+
+
+            LOG.info("Token generated for " + subject);
+            final HttpHeaders headers = new HttpHeaders();
+//        headers.add("Authorization", "Bearer " + jwe);
+            LOG.info("Authorization Header set with token");
+            return (new ResponseEntity<>(jsonObject, headers, HttpStatus.UNAUTHORIZED));
+        }
     }
 
 
 
+    @CrossOrigin
     @RequestMapping(value="/api/otp-token", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
+    @ApiOperation(value = "Generate OTP For Authentication", response = ResponseEntity.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successful"),
+            @ApiResponse(code = 400, message = "Validation of request parameters failed"),
+//            @ApiResponse(code = 403, message = "Access to API denied due to invalid token"),
+            @ApiResponse(code = 500, message = "Application failed to process the request")
+    })
     public ResponseEntity<?> getOtpToken(@Valid @RequestBody final RequestData requestData, final Errors errors) throws JsonProcessingException {
 
         LOG.error("1212 = ");
@@ -115,8 +159,16 @@ public class TokenController {
 
 
 
-
+    @CrossOrigin
     @RequestMapping(value="/api/validate-otp", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiImplicitParam(name = "Authorization", required = true, paramType = "header", dataTypeClass = String.class, example = "Bearer <Token>")
+    @ApiOperation(value = "Validate Users OTP", response = ResponseEntity.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successful"),
+            @ApiResponse(code = 400, message = "Validation of request parameters failed"),
+            @ApiResponse(code = 403, message = "Access to API denied due to invalid token"),
+            @ApiResponse(code = 500, message = "Application failed to process the request")
+    })
     public ResponseEntity<?> postValidateOtp(@Valid @RequestBody final ValidateOtpRequestData validateOtpRequestData, final Errors errors,
                                              HttpServletRequest request,
                                              HttpServletResponse response) throws JsonProcessingException {

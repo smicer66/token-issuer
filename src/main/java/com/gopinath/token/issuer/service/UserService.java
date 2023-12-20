@@ -41,10 +41,12 @@ public class UserService {
         List<User> allUsers = userDao.getUserByEmailAddress(username);
         logger.info("{}", allUsers);
 
-        User us = allUsers.get(0);
-        logger.info("user dob ...{}", us.getDateOfBirth());
-
-        return us;
+        if(allUsers!=null && !allUsers.isEmpty()) {
+            User us = allUsers.get(0);
+            logger.info("user dob ...{}", us.getDateOfBirth());
+            return us;
+        }
+        return null;
 
     }
 

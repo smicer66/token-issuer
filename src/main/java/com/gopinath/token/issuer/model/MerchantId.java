@@ -10,4 +10,5 @@ public class MerchantId {
     private Long id;
     private String businessName;
     private String merchantCode;
+    private String businessLogo;
 }

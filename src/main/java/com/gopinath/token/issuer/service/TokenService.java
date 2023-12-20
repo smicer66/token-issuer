@@ -106,6 +106,9 @@ public class TokenService {
             String password = requestData.getPassword();
             User us = userService.loadUserByUsername(username);
 
+            if(us==null)
+                return null;
+
 //            String hh = BCrypt.hashpw("businessCategory", BCrypt.gensalt(12));
 //            LOG.info("eeeee {}", hh);
 //            LOG.info("bcrypted {} => {}", us.getPassword(), password);

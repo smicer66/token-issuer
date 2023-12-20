@@ -11,6 +11,7 @@
     <groupId>com.gopinath</groupId>
     <artifactId>token-issuer</artifactId>
     <version>1.0.0</version>
+<!--    <packaging>jar</packaging>-->
     <packaging>war</packaging>
     <name>token-issuer</name>
     <description>Service to issue JSON Web Tokens</description>
@@ -64,15 +65,26 @@
             <artifactId>mail</artifactId>
             <version>1.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>3.0.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>com.gopinath.token.issuer.Application</mainClass>
-                </configuration>
+<!--                <configuration>-->
+<!--                    <mainClass>com.gopinath.token.issuer.Application</mainClass>-->
+<!--                </configuration>-->
             </plugin>
         </plugins>
     </build>

@@ -21,15 +21,15 @@ public class User implements Serializable {
     private String emailAddress;
     private String mobileNumber;
     private String password;
-    private String forgotPasswordLink;
+//    private String forgotPasswordLink;
 
     private String userStatus;
 
     private String gender;
     private Date dateOfBirth;
-    private String otp;
-    private LocalDateTime otpExpiryDate;
-    private String verificationLink;
+//    private String otp;
+//    private LocalDateTime otpExpiryDate;
+//    private String verificationLink;
     private String primaryBusinessName;
     private String country;
     private Boolean softwareDeveloper;

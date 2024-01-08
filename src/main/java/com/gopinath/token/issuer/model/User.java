@@ -1,5 +1,7 @@
 package com.gopinath.token.issuer.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.gopinath.token.issuer.enums.UserRole;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +14,7 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties(value = { "password", "otp", "otpExpiryDate", "verificationLink", "forgotPasswordLink" })
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,4 +40,13 @@ public class User implements Serializable {
     private String identificationNumber;
     private String identificationDocumentPath;
     private Long primaryMerchantId;
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole;
+
+    @Column(nullable = false)
+    Date createdAt;
+
+    @Column(nullable = false)
+    Date updatedAt;
+    Date deletedAt;
 }

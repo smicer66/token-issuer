@@ -3,6 +3,7 @@ package com.gopinath.token.issuer.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gopinath.token.issuer.enums.Permission;
+import com.gopinath.token.issuer.model.AuthResponse;
 import com.gopinath.token.issuer.model.RequestData;
 import com.gopinath.token.issuer.model.User;
 import com.gopinath.token.issuer.model.UserOtp;
@@ -98,7 +99,7 @@ public class TokenService {
         return jwk;
     }
     
-    public String getToken(RequestData requestData, UserService userService, List<Permission> permissions, int periodInMins, String key) throws JsonProcessingException {
+    public AuthResponse getToken(RequestData requestData, UserService userService, List<Permission> permissions, int periodInMins, String key) throws JsonProcessingException {
         String token = "unknown";
         try {
             
@@ -107,7 +108,23 @@ public class TokenService {
             User us = userService.loadUserByUsername(username);
 
             if(us==null)
-                return null;
+            {
+                return new AuthResponse(false, "Invalid username/password combination. Please provide a valid username/password combination", null);
+            }
+
+
+            if(us.getUserStatus().equals("NOT_ACTIVATED"))
+            {
+                return new AuthResponse(false, "Activate your account before you can log in", null);
+            }
+            else if(us.getUserStatus().equals("SUSPENDED"))
+            {
+                return new AuthResponse(false, "Profile can not be logged in at this moment. Contact system administrator", null);
+            }
+            else if(us.getUserStatus().equals("DELETED"))
+            {
+                return new AuthResponse(false, "Invalid username/password combination. Please provide a valid username/password combination", null);
+            }
 
 //            String hh = BCrypt.hashpw("businessCategory", BCrypt.gensalt(12));
 //            LOG.info("eeeee {}", hh);
@@ -175,7 +192,7 @@ public class TokenService {
             // TODO Auto-generated catch block
             LOG.error(e.toString());
         }
-        return token;
+        return new AuthResponse(true, "Login successful", token);
     }
 
 

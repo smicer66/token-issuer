@@ -2,6 +2,7 @@ package com.gopinath.token.issuer.dao;
 
 import com.gopinath.token.issuer.model.MerchantId;
 import com.gopinath.token.issuer.model.User;
+import com.gopinath.token.issuer.model.UserRolePermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class UserDao{
     private SimpleJdbcCall getUserById;
     private SimpleJdbcCall getMerchantIdsByUsername;
     private SimpleJdbcCall createOneTimePassword;
+    private SimpleJdbcCall getPermissionsByRole;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -54,6 +56,12 @@ public class UserDao{
                 .withProcedureName("CreateOneTimePassword")
                 .returningResultSet("#result-set-1",
                         RowMapper.newInstance(String.class));
+
+        getPermissionsByRole = new SimpleJdbcCall(jdbcTemplate)
+//                .withFunctionName("GetUserByEmailAddress")
+                .withProcedureName("GetUserRolePermissionByRole")
+                .returningResultSet("#result-set-1",
+                        RowMapper.newInstance(UserRolePermission.class));
     }
 
 
@@ -95,4 +103,16 @@ public class UserDao{
         List<Long> result = (List<Long>) m.get("#result-set-1");
         return result;
     }
+
+
+
+    public List<UserRolePermission> getPermissionsByRole(String userRole) {
+        MapSqlParameterSource in = new MapSqlParameterSource()
+                .addValue("userRole", userRole);
+        Map<String, Object> m = getPermissionsByRole.execute(in);
+        logger.info("{}", m);
+        List<UserRolePermission> result = (List<UserRolePermission>) m.get("#result-set-1");
+        return result;
+    }
+
 }

@@ -4,6 +4,7 @@ import com.gopinath.token.issuer.model.RequestData;
 import com.gopinath.token.issuer.model.User;
 import com.gopinath.token.issuer.dao.UserDao;
 import com.gopinath.token.issuer.model.UserOtp;
+import com.gopinath.token.issuer.model.UserRolePermission;
 import com.gopinath.token.issuer.responses.TokenResponse;
 import com.sun.mail.smtp.SMTPTransport;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -118,5 +119,16 @@ public class UserService {
             return null;
 
         return merchantIdList;
+    }
+
+
+    public List<UserRolePermission> getPermissionsByRole(String userRole)
+    {
+        List<UserRolePermission> userRolePermissionList = userDao.getPermissionsByRole(userRole);
+
+        if(userRolePermissionList.isEmpty())
+            return null;
+
+        return userRolePermissionList;
     }
 }

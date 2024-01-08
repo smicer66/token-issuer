@@ -3,10 +3,7 @@ package com.gopinath.token.issuer.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gopinath.token.issuer.enums.Permission;
-import com.gopinath.token.issuer.model.RequestData;
-import com.gopinath.token.issuer.model.User;
-import com.gopinath.token.issuer.model.UserOtp;
-import com.gopinath.token.issuer.model.ValidateOtpRequestData;
+import com.gopinath.token.issuer.model.*;
 import com.gopinath.token.issuer.responses.TokenResponse;
 import com.gopinath.token.issuer.service.TokenService;
 import com.gopinath.token.issuer.service.UserOtpService;
@@ -34,6 +31,7 @@ import javax.validation.Valid;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,21 +76,44 @@ public class TokenController {
             return ResponseEntity.badRequest().body(errorMessage);
         }
         String subject = requestData.getUsername();
-        Permission permission = Permission.ALL_PERMISSIONS;
-        String jwe = tokenService.getToken(requestData, userService, Arrays.asList(permission), tokenPeriodInMins, null);
+        Permission permission = Permission.CREATE_ROLE_PERMISSION;
+        AuthResponse jweAuth = tokenService.getToken(requestData, userService, Arrays.asList(permission), tokenPeriodInMins, null);
+
+        JSONObject jsonObject = new JSONObject();
+        if(jweAuth.getValid().equals(Boolean.FALSE))
+        {
+            jsonObject.put("status", 1);
+            jsonObject.put("message", jweAuth.getMessage());
+            jsonObject.put("subject", subject);
+            jsonObject.put("token", jweAuth.getToken());
+            jsonObject.put("merchantList", new ArrayList<>());
+
+
+            LOG.info("Token generated for " + subject);
+            final HttpHeaders headers = new HttpHeaders();
+//        headers.add("Authorization", "Bearer " + jwe);
+            LOG.info("Authorization Header set with token");
+            return (new ResponseEntity<>(jsonObject, headers, HttpStatus.OK));
+        }
         List<Long> merchantIdList = userService.getMerchantIdsByUsername(requestData.getUsername());
+        User us = userService.getUserByEmailAddress(subject);
         ObjectMapper objectMapper = new ObjectMapper();
         String merchantIds = objectMapper.writeValueAsString(merchantIdList);
 //        String json = ("{\"subject\":\"" + subject
 //                + "\",\"token\":\"" + jwe + "\",\"merchantList\":}");
-        JSONObject jsonObject = new JSONObject();
+
+        String jwe = jweAuth.getToken();
 
         if(jwe!=null)
         {
             jsonObject.put("status", 0);
-            jsonObject.put("subject", subject);
+            jsonObject.put("subject", new ObjectMapper().writeValueAsString(us));
             jsonObject.put("token", jwe);
             jsonObject.put("merchantList", merchantIdList);
+            jsonObject.put("role", us.getUserRole());
+
+            List<UserRolePermission> userRolePermissionList = userService.getPermissionsByRole(us.getUserRole().name());
+            jsonObject.put("permissions", userRolePermissionList);
 
 
             LOG.info("Token generated for " + subject);
@@ -103,7 +124,7 @@ public class TokenController {
         }
         else {
             jsonObject.put("status", 1);
-            jsonObject.put("message", "Login was not successful. Invalid username/password combination");
+            jsonObject.put("message", jweAuth.getMessage());
             jsonObject.put("subject", subject);
             jsonObject.put("token", jwe);
             jsonObject.put("merchantList", merchantIdList);
@@ -113,7 +134,7 @@ public class TokenController {
             final HttpHeaders headers = new HttpHeaders();
 //        headers.add("Authorization", "Bearer " + jwe);
             LOG.info("Authorization Header set with token");
-            return (new ResponseEntity<>(jsonObject, headers, HttpStatus.UNAUTHORIZED));
+            return (new ResponseEntity<>(jsonObject, headers, HttpStatus.OK));
         }
     }
 
@@ -141,18 +162,18 @@ public class TokenController {
         Permission permission = Permission.AUTHENTICATE_WITH_OTP;
         String otpKey = RandomStringUtils.randomAlphanumeric(16).toUpperCase();
         LOG.info("key...{}", otpKey);
-        String jwe = tokenService.getToken(requestData, userService, Arrays.asList(permission), tokenOtpPeriodInMins, otpKey);
-        if(jwe!=null)
+        AuthResponse jweAuth = tokenService.getToken(requestData, userService, Arrays.asList(permission), tokenOtpPeriodInMins, otpKey);
+        if(jweAuth.getToken()!=null)
             userService.createOtp(requestData, tokenOtpPeriodInMins, otpKey);
         else
-            return (new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR));
+            return (new ResponseEntity<>(jweAuth.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR));
 
 
         String json = ("{\"subject\":\"" + subject
-                + "\",\"token\":\"" + jwe + "\"}");
+                + "\",\"token\":\"" + jweAuth.getToken() + "\"}");
         LOG.info("Token generated for " + subject);
         final HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + jwe);
+        headers.add("Authorization", "Bearer " + jweAuth.getToken());
         LOG.info("Authorization Header set with token");
         return (new ResponseEntity<>(json, headers, HttpStatus.OK));
     }
@@ -187,7 +208,7 @@ public class TokenController {
             return (new ResponseEntity<>("One-Time Password has expired", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR));
         }
 
-        List<Permission> permissions = Arrays.asList(Permission.ALL_PERMISSIONS);
+        List<Permission> permissions = Arrays.asList(Permission.CREATE_ROLE_PERMISSION);
         String token = tokenService.getTokenByUsername(validateOtpRequestData.getUsername(), userService, permissions, tokenPeriodInMins, null);
 
         TokenResponse tokenResponse = new TokenResponse();

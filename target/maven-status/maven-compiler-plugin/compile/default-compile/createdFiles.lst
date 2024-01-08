@@ -16,7 +16,10 @@ com\gopinath\token\issuer\enums\Permission.class
 com\gopinath\token\issuer\service\UserService.class
 com\gopinath\token\issuer\config\SwaggerConfig.class
 com\gopinath\token\issuer\controller\TokenController.class
+com\gopinath\token\issuer\enums\UserRole.class
 com\gopinath\token\issuer\model\UserOtp.class
 com\gopinath\token\issuer\model\ForgotPasswordRequest.class
 com\gopinath\token\issuer\service\UserOtpService.class
 com\gopinath\token\issuer\config\SimpleCORSFilter.class
+com\gopinath\token\issuer\model\AuthResponse.class
+com\gopinath\token\issuer\model\UserRolePermission.class

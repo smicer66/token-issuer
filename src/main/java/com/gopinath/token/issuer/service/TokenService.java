@@ -133,7 +133,7 @@ public class TokenService {
 
             if(matchedPin==false)
             {
-                return null;
+                return new AuthResponse(false, "Invalid username/password combination. Please provide a valid username/password combination", null);
             }
             us.setPassword(null);
             String subject = requestData.getUsername();

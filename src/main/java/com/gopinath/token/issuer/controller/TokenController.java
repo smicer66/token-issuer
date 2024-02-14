@@ -80,7 +80,7 @@ public class TokenController {
         AuthResponse jweAuth = tokenService.getToken(requestData, userService, Arrays.asList(permission), tokenPeriodInMins, null);
 
         JSONObject jsonObject = new JSONObject();
-        if(jweAuth.getValid().equals(Boolean.FALSE))
+        if(jweAuth!=null && jweAuth.getValid().equals(Boolean.FALSE))
         {
             jsonObject.put("status", 1);
             jsonObject.put("message", jweAuth.getMessage());
@@ -112,7 +112,7 @@ public class TokenController {
             jsonObject.put("merchantList", merchantIdList);
             jsonObject.put("role", us.getUserRole());
 
-            List<UserRolePermission> userRolePermissionList = userService.getPermissionsByRole(us.getUserRole().name());
+            List<UserRolePermission> userRolePermissionList = userService.getPermissionsByRole(us.getUserRole().name(), 0, Integer.MAX_VALUE);
             jsonObject.put("permissions", userRolePermissionList);
 
 

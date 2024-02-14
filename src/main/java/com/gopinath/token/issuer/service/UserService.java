@@ -122,9 +122,9 @@ public class UserService {
     }
 
 
-    public List<UserRolePermission> getPermissionsByRole(String userRole)
+    public List<UserRolePermission> getPermissionsByRole(String userRole, Integer pageNumber, Integer rowCount)
     {
-        List<UserRolePermission> userRolePermissionList = userDao.getPermissionsByRole(userRole);
+        List<UserRolePermission> userRolePermissionList = userDao.getPermissionsByRole(userRole, pageNumber, rowCount);
 
         if(userRolePermissionList.isEmpty())
             return null;

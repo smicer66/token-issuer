@@ -106,9 +106,11 @@ public class UserDao{
 
 
 
-    public List<UserRolePermission> getPermissionsByRole(String userRole) {
+    public List<UserRolePermission> getPermissionsByRole(String userRole, Integer pageNumber, Integer rowCount) {
         MapSqlParameterSource in = new MapSqlParameterSource()
-                .addValue("userRole", userRole);
+                .addValue("userRole", userRole)
+                .addValue("pageNumber", pageNumber)
+                .addValue("pageSize", rowCount);
         Map<String, Object> m = getPermissionsByRole.execute(in);
         logger.info("{}", m);
         List<UserRolePermission> result = (List<UserRolePermission>) m.get("#result-set-1");
